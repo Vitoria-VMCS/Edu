@@ -17,10 +17,10 @@ void mover(int16_t esq, int16_t dir) {
 
 void motor(uint8_t m1, uint8_t m2, int16_t vel) {
     if (vel < 0) {
-        analogWrite(m1, abs(vel));
-        analogWrite(m2, 0);
+        digitalWrite(m1, abs(vel));
+        digitalWrite(m2, 0);
     } else {
-        analogWrite(m1, 0);
-        analogWrite(m2, vel);
+        digitalWrite(m1, 0);
+        digitalWrite(m2, vel);
     }
 }

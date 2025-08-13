@@ -1,5 +1,9 @@
 #include "edu.h"
 #include "SumoIR.h"
+
+#define PINO_IR 15
+SumoIR IR;
+
 enum simbolo {
     NADA,
     FRENTE,
@@ -14,51 +18,55 @@ enum estado {
 
 enum estado estado_atual = G_DIR;
 
-SumoIR IR;
 void setup() { 
-    init_edu(9600);
-    
-    Serial.begin(115200);
-    IR.begin(A0);
-
+    init_edu(9600);    
+    IR.begin(PINO_IR);
     IR.setLed(2,HIGH,180);
 }
 
 void loop() {  
     IR.update();
-    if (IR.on()) {
+
+    if (IR.prepare()) { /* robô em preparação */
+        mover(0,0);
+        Serial.println("Preparar");
+
+    } else if (IR.start()) {
+        Serial.println("-> sumo start");
+
+    } else if (IR.on()) {
         enum simbolo simb;
 
         //lê sensores e retorna o símbolo adequado
-        if      (dist_frente()   <35)  simb = FRENTE;
-        else if (dist_esq()  <35)  simb = ESQ;
-        else if (dist_dir()   <35)  simb = DIR;
-        else                              simb = NADA;
+        if      (dist_frente_esq() || dist_frente_dir())   simb = FRENTE;
+        else if (dist_esq() )   simb = ESQ;
+        else if (dist_dir() )   simb = DIR;
+        else                    simb = NADA;
         Serial.print(simb);
 
         
         //Atualiza o estado da máquina
+        //empurra_giro = false;
         estado_atual = prox_estado(estado_atual, simb);
 
         // Executa ação de acordo com o estado
         switch (estado_atual) {
-        case G_DIR: {
-            Serial.println(" GIRANDO PRA DIREITA");
-            mover(150,-150);
-        } break;
-        case RETO: {
-            Serial.println("EMPURRANDO");
-            mover(255,255);
-        } break;
-        case G_ESQ: {
-            Serial.println("GIRANDO PRA ESQUERDA");
-            mover(-150,150);
-        } break;
+            case G_DIR: {
+                Serial.println(" GIRANDO PRA DIREITA");
+                mover(500,-500);
+            } break;
+            case RETO: {
+                Serial.println("EMPURRANDO");
+                mover(1023,1023);
+            } break;
+            case G_ESQ: {
+                Serial.println("GIRANDO PRA ESQUERDA");
+                mover(-500,500);
+            } break;
         }
 
-        delay(100);
-    
-    }else{
+    } else if (IR.stop()){
+        Serial.println("-> sumo stop");
         mover(0,0);
     }
 }
@@ -92,3 +100,4 @@ void loop() {
 
         return G_ESQ; // valor padrão de segurança
     }
+   
