@@ -9,11 +9,15 @@ enum simbolo {
     FRENTE,
     ESQ,
     DIR,
+    FRENTE_ESQ,
+    FRENTE_DIR,
 };
 enum estado {
     G_DIR = 0,
     RETO,
     G_ESQ,
+    G_FRENTE_ESQ,
+    G_FRENTE_DIR,
 };
 
 enum estado estado_atual = G_DIR;
@@ -34,14 +38,16 @@ void loop() {
     } else if (IR.start()) {
         Serial.println("-> sumo start");
 
-    } else if (IR.on()) {
+    }  else if (IR.on()) {
         enum simbolo simb;
 
         //lê sensores e retorna o símbolo adequado
-        if      (dist_frente_esq() || dist_frente_dir())   simb = FRENTE;
+        if      (dist_frente_esq() && dist_frente_dir())   simb = FRENTE;
         else if (dist_esq() )   simb = ESQ;
         else if (dist_dir() )   simb = DIR;
-        else                    simb = NADA;
+        else if (dist_frente_esq()) simb = FRENTE_ESQ;
+        else if (dist_frente_dir()) simb = FRENTE_DIR;                    
+        else simb = NADA;
         Serial.print(simb);
 
         
@@ -63,6 +69,14 @@ void loop() {
                 Serial.println("GIRANDO PRA ESQUERDA");
                 mover(-500,500);
             } break;
+            case G_FRENTE_ESQ: {
+                Serial.println("GIRANDO LEVE PARA ESQUERDA");
+                mover(-200, 200);
+            } break;
+            case G_FRENTE_DIR: {
+                Serial.println("GIRANDO LEVE PARA DIREITA");
+                mover(200, -200);
+            } break;
         }
 
     } else if (IR.stop()){
@@ -73,12 +87,15 @@ void loop() {
 
 
     // Define os próximos estados com base no estado atual e símbolo lido
-    estado prox_estado(estado e, simbolo s) {
+   estado prox_estado(estado e, simbolo s) {
         switch (e) {
             case G_DIR:
                 switch (s) {
                     case FRENTE: return RETO;
                     case ESQ:    return G_ESQ;
+                    case FRENTE_ESQ: return G_FRENTE_ESQ;
+                    case FRENTE_DIR: return G_FRENTE_DIR;
+                    case DIR: return G_DIR;
                     default:     return G_DIR;
                 }
 
@@ -87,6 +104,8 @@ void loop() {
                     case FRENTE: return RETO;
                     case ESQ:    return G_ESQ;
                     case DIR:    return G_DIR;
+                    case FRENTE_ESQ: return G_FRENTE_ESQ;
+                    case FRENTE_DIR: return G_FRENTE_DIR;
                     default:     return G_DIR;
                 }
 
@@ -94,10 +113,32 @@ void loop() {
                 switch (s) {
                     case FRENTE: return RETO;
                     case DIR:    return G_DIR;
+                    case FRENTE_ESQ: return G_FRENTE_ESQ;
+                    case FRENTE_DIR: return G_FRENTE_DIR;
+                    case ESQ: return G_ESQ;
                     default:     return G_ESQ;
                 }
+            case G_FRENTE_ESQ:
+                switch(s){
+                    case FRENTE: return RETO;
+                    case ESQ:    return G_ESQ;
+                    case DIR:    return G_DIR;
+                    case FRENTE_ESQ: return G_FRENTE_ESQ;
+                    case FRENTE_DIR: return G_FRENTE_DIR;
+                    default:     return G_DIR;
+                }
+            case G_FRENTE_DIR:
+            switch(s){
+                 case FRENTE: return RETO;
+                    case ESQ:    return G_ESQ;
+                    case DIR:    return G_DIR;
+                    case FRENTE_ESQ: return G_FRENTE_ESQ;
+                    case FRENTE_DIR: return G_FRENTE_DIR;
+                    default:     return G_DIR;
+            }
         }
 
         return G_ESQ; // valor padrão de segurança
     }
    
+
