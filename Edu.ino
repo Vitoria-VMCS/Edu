@@ -1,5 +1,8 @@
+//#define MADMAX
+//!!!!!!^^^^^^
 #include "edu.h"
 #include "SumoIR.h"
+#include "LEDFX.h"
 
 #define PINO_IR 15
 SumoIR IR;
@@ -34,11 +37,11 @@ void loop() {
     if (IR.prepare()) { /* robô em preparação */
         mover(0,0);
         Serial.println("Preparar");
-
     } else if (IR.start()) {
         Serial.println("-> sumo start");
-
     }  else if (IR.on()) {
+        ledDetection();
+
         enum simbolo simb;
 
         //lê sensores e retorna o símbolo adequado
@@ -50,35 +53,36 @@ void loop() {
         else simb = NADA;
         Serial.print(simb);
 
-        
         //Atualiza o estado da máquina
-        //empurra_giro = false;
         estado_atual = prox_estado(estado_atual, simb);
 
-        // Executa ação de acordo com o estado
-        switch (estado_atual) {
-            case G_DIR: {
-                Serial.println(" GIRANDO PRA DIREITA");
-                mover(500,-500);
-            } break;
-            case RETO: {
-                Serial.println("EMPURRANDO");
-                mover(1023,1023);
-            } break;
-            case G_ESQ: {
-                Serial.println("GIRANDO PRA ESQUERDA");
-                mover(-500,500);
-            } break;
-            case G_FRENTE_ESQ: {
-                Serial.println("GIRANDO LEVE PARA ESQUERDA");
-                mover(-200, 200);
-            } break;
-            case G_FRENTE_DIR: {
-                Serial.println("GIRANDO LEVE PARA DIREITA");
-                mover(200, -200);
-            } break;
-        }
-
+        #ifdef MADMAX
+           mover(1023, 1023);
+        #else
+            // Executa ação de acordo com o estado
+            switch (estado_atual) {
+                case G_DIR: {
+                    Serial.println(" GIRANDO PRA DIREITA");
+                    mover(500,-500);
+                } break;
+                case RETO: {
+                    Serial.println("EMPURRANDO");
+                    mover(1023,1023);
+                } break;
+                case G_ESQ: {
+                    Serial.println("GIRANDO PRA ESQUERDA");
+                    mover(-500,500);
+                } break;
+                case G_FRENTE_ESQ: {
+                    Serial.println("GIRANDO LEVE PARA ESQUERDA");
+                    mover(-200, 200);
+                } break;
+                case G_FRENTE_DIR: {
+                    Serial.println("GIRANDO LEVE PARA DIREITA");
+                    mover(200, -200);
+                } break;
+            }
+        #endif
     } else if (IR.stop()){
         Serial.println("-> sumo stop");
         mover(0,0);
@@ -95,9 +99,9 @@ void loop() {
                     case ESQ:    return G_ESQ;
                     case FRENTE_ESQ: return G_FRENTE_ESQ;
                     case FRENTE_DIR: return G_FRENTE_DIR;
-                    case DIR: return G_DIR;
-                    default:     return G_DIR;
-                }
+                    case DIR:      return G_DIR;
+                    case NADA:     return G_DIR;
+                } break;
 
             case RETO:
                 switch (s) {
@@ -106,8 +110,8 @@ void loop() {
                     case DIR:    return G_DIR;
                     case FRENTE_ESQ: return G_FRENTE_ESQ;
                     case FRENTE_DIR: return G_FRENTE_DIR;
-                    default:     return G_DIR;
-                }
+                    case NADA:     return G_DIR;
+                } break;
 
             case G_ESQ:
                 switch (s) {
@@ -116,8 +120,8 @@ void loop() {
                     case FRENTE_ESQ: return G_FRENTE_ESQ;
                     case FRENTE_DIR: return G_FRENTE_DIR;
                     case ESQ: return G_ESQ;
-                    default:     return G_ESQ;
-                }
+                    case NADA:     return G_ESQ;
+                } break;
             case G_FRENTE_ESQ:
                 switch(s){
                     case FRENTE: return RETO;
@@ -125,8 +129,8 @@ void loop() {
                     case DIR:    return G_DIR;
                     case FRENTE_ESQ: return G_FRENTE_ESQ;
                     case FRENTE_DIR: return G_FRENTE_DIR;
-                    default:     return G_DIR;
-                }
+                    case NADA:     return G_DIR;
+                } break;
             case G_FRENTE_DIR:
             switch(s){
                  case FRENTE: return RETO;
@@ -134,11 +138,10 @@ void loop() {
                     case DIR:    return G_DIR;
                     case FRENTE_ESQ: return G_FRENTE_ESQ;
                     case FRENTE_DIR: return G_FRENTE_DIR;
-                    default:     return G_DIR;
-            }
+                    case NADA:    return G_DIR;
+            } break;
         }
 
         return G_ESQ; // valor padrão de segurança
     }
    
-
