@@ -63,7 +63,7 @@ void loop() {
             switch (estado_atual) {
                 case G_DIR: {
                     Serial.println(" GIRANDO PRA DIREITA");
-                    mover(500,-500);
+                    mover(400,-400);
                 } break;
                 case RETO: {
                     Serial.println("EMPURRANDO");
@@ -71,15 +71,15 @@ void loop() {
                 } break;
                 case G_ESQ: {
                     Serial.println("GIRANDO PRA ESQUERDA");
-                    mover(-500,500);
+                    mover(-400,400);
                 } break;
                 case G_FRENTE_ESQ: {
                     Serial.println("GIRANDO LEVE PARA ESQUERDA");
-                    mover(-200, 200);
+                    mover(-300, 300);
                 } break;
                 case G_FRENTE_DIR: {
                     Serial.println("GIRANDO LEVE PARA DIREITA");
-                    mover(200, -200);
+                    mover(300, -300);
                 } break;
             }
         #endif
